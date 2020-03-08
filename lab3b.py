@@ -1,5 +1,7 @@
 import sys
 import csv
+from collections import defaultdict
+
 
 if len(sys.argv) != 2:
     sys.stderr.write("The only argument should be the csv file.\n")
@@ -15,6 +17,9 @@ block_per_group = 0
 inode_per_group = 0
 first_non_reserved_inode = 0
 
+free_list = defaultdict(int)
+reference_list = defaultdict(int)
+
 with open(file_path, "r") as f:
     reader = csv.reader(f, delimiter=',')
     for row in reader:
@@ -26,6 +31,13 @@ with open(file_path, "r") as f:
             block_per_group = int(row[5])
             inode_per_group = int(row[6])
             first_non_reserved_inode = int(row[7])
+        if row[0] == 'BFREE':
+            free_list[row[1]] += 1
+        if row[0] == 'INODE':
+            for each in row[12:]:
+                if (int(each) != 0):
+                    reference_list[each] += 1
+
 
 with open(file_path, "r") as f:
     reader = csv.reader(f, delimiter=',')
@@ -37,6 +49,36 @@ with open(file_path, "r") as f:
                     print(f"INVALID BLOCK {each_block} IN INODE {row[1]} AT OFFSET {i}")
                 if int(each_block) > 0 and int(each_block) < reserved:    
                     print(f"RESERVED BLOCK {each_block} IN INODE {row[1]} AT OFFSET {i}")
+            for i, each_block in enumerate(row[12:]):
+                if int(each_block) != 0 :
+                    if not each_block in free_list and not each_block in reference_list:
+                        if i == 13:
+                            print(f"UNREFERENCED INDIRECT BLOCK {each_block}")
+                        elif i == 14:
+                            print(f"UNREFERENCED DOUBLE INDIRECT BLOCK {each_block}")
+                        elif i == 15:
+                            print(f"UNREFERENCED TRIPLE INDIRECT BLOCK {each_block}")
+                        else:
+                            print(f"UNREFERENCED BLOCK {each_block}")
+                    elif each_block in free_list and each_block in reference_list:
+                        if i == 13:
+                            print(f"ALLOCATED INDIRECT BLOCK {each_block}")
+                        elif i == 14:
+                            print(f"ALLOCATED DOUBLE INDIRECT BLOCK {each_block}")
+                        elif i == 15:
+                            print(f"ALLOCATED TRIPLE INDIRECT BLOCK {each_block}")
+                        else:
+                            print(f"ALLOCATED BLOCK {each_block}")
+                    elif reference_list[each_block] > 1:
+                        if i == 13:
+                            print(f"DUPLICATE INDIRECT BLOCK {each_block}")
+                        elif i == 14:
+                            print(f"DUPLICATE DOUBLE INDIRECT BLOCK {each_block}")
+                        elif i == 15:
+                            print(f"DUPLICATE TRIPLE INDIRECT BLOCK {each_block}")
+                        else:
+                            print(f"DUPLICATE BLOCK {each_block}")
+
             if int(row[24]) < 0 or int(row[24]) > num_block:
                 print(f"INVALID INDIRECT BLOCK {row[24]} IN INODE {row[1]} AT OFFSET 12")
             if int(row[24]) > 0 and int(row[24]) < reserved:
@@ -50,7 +92,13 @@ with open(file_path, "r") as f:
             if int(row[26]) > 0 and int(row[26]) < reserved:
                 print(f"RESERVED TRIPLE INDIRECT BLOCK {row[26]} IN NODE {row[1]} AT OFFSET 65804")
 
-
-
-
-
+        if row[0] == 'INDIRECT':
+            level = "INDIRECT"
+            if(int(row[2]) == 2):
+                level = "DOUBLE INDIRECT"
+            elif(int(row[2]) == 3):
+                level = "TRIPLE INDIRECT"
+            if int(row[5]) < 0 or int(row[5]) > num_block:
+                print(f"INVALID {level} BLOCK {row[5]} IN INODE {row[1]} AT OFFSET {row[3]}")
+            if int(row[5]) > 0 and int(row[5]) < reserved:
+                print(f"RESERVED {level} BLOCK {row[5]} IN INODE {row[1]} AT OFFSET {row[3]}")
