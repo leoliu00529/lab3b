@@ -20,7 +20,6 @@ first_non_reserved_inode = 0
 free_list = defaultdict(int)
 reference_list = defaultdict(int)
 free_inode_list = defaultdict(int)
-inode_reference_list = defaultdict(int)
 
 
 with open(file_path, "r") as f:
@@ -40,7 +39,6 @@ with open(file_path, "r") as f:
             for each in row[12:]:
                 if (int(each) != 0):
                     reference_list[each] += 1
-            inode_reference_list[row[1]] += 1
         if row[0] == 'INDIRECT':
             reference_list[row[5]] += 1
         if row[0] == 'IFREE':
@@ -53,11 +51,12 @@ with open(file_path, "r") as f:
         if str(each) not in free_list and str(each) not in reference_list:
             print(f"UNREFERENCED BLOCK {each}")
 
+    print(reference_list)
+    print(free_inode_list)
     for each in range(first_non_reserved_inode, num_inode + 1):
-        if str(each) not in free_inode_list and str(each) not in inode_reference_list:
+        if str(each) not in free_inode_list and str(each) not in reference_list:
             print(f"UNALLOCATED INODE {each} NOT ON FREELIST")
-    for each in range(1, num_inode + 1):
-        if str(each) in free_inode_list and str(each) in inode_reference_list:
+        if str(each) in free_inode_list and str(each) in reference_list:
             print(f"ALLOCATED INODE {each} ON FREELIST")
 
     for row in reader:
@@ -72,13 +71,13 @@ with open(file_path, "r") as f:
                 if int(each_block) != 0 :
                     if each_block in free_list and each_block in reference_list:
                         if i == 13:
-                            print(f"ALLOCATED INDIRECT BLOCK {each_block} ON FREELIST")
+                            print(f"ALLOCATED INDIRECT BLOCK {each_block}")
                         elif i == 14:
-                            print(f"ALLOCATED DOUBLE INDIRECT BLOCK {each_block} ON FREELIST")
+                            print(f"ALLOCATED DOUBLE INDIRECT BLOCK {each_block}")
                         elif i == 15:
-                            print(f"ALLOCATED TRIPLE INDIRECT BLOCK {each_block} ON FREELIST")
+                            print(f"ALLOCATED TRIPLE INDIRECT BLOCK {each_block}")
                         else:
-                            print(f"ALLOCATED BLOCK {each_block} ON FREELIST")
+                            print(f"ALLOCATED BLOCK {each_block}")
                     elif reference_list[each_block] > 1:
                         if i == 13:
                             print(f"DUPLICATE INDIRECT BLOCK {each_block}")
