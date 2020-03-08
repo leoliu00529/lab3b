@@ -34,10 +34,20 @@ with open(file_path, "r") as f:
             for i, each_block in enumerate(row[12:24]):
                 if int(each_block) < 0 or int(each_block) > num_block:
                     print(f"INVALID BLOCK {each_block} IN INODE {row[1]} AT OFFSET {i}")
-
-
-
-
+                if int(each_block) > 0 and int(each_block) < first_non_reserved_inode:    
+                    print(f"RESERVED BLOCK {each_block} IN INODE {row[1]} AT OFFSET {i}")
+            if int(row[13]) < 0 or int(row[13]) > num_block:
+                print(f"INVALID BLOCK {row[13]} IN INODE {row[1]} AT OFFSET 12")
+            if int(row[13]) > 0 and int(row[13]) < first_non_reserved_inode:
+                print(f"RESERVED BLOCK {row[13]} IN NODE {row[1]} AT OFFSET 12")
+            if int(row[14]) < 0 or int(row[14])> num_block:
+                print(f"INVALID BLOCK {row[14]} IN INODE {row[1]} AT OFFSET 268")
+            if int(row[13]) > 0 and int(row[14]) < first_non_reserved_inode:
+                print(f"RESERVED BLOCK {row[14]} IN NODE {row[1]} AT OFFSET 268")
+            if int(row[15]) < 0 or int(row[15])> num_block:
+                print(f"INVALID BLOCK {row[15]} IN INODE {row[1]} AT OFFSET 65804")
+            if int(row[15]) > 0 and int(row[15]) < first_non_reserved_inode:
+                print(f"RESERVED BLOCK {row[15]} IN NODE {row[1]} AT OFFSET 65804")
 
 
 
