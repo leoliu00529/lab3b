@@ -22,6 +22,7 @@ reference_list = defaultdict(int)
 free_inode_list = defaultdict(int)
 inode_reference_list = defaultdict(int)
 dir_counts = defaultdict(int)
+parent_list = defaultdict(int)
 
 with open(file_path, "r") as f:
     reader = csv.reader(f, delimiter=',')
@@ -47,6 +48,8 @@ with open(file_path, "r") as f:
             free_inode_list[row[1]] += 1
         if row[0] == 'DIRENT':
             dir_counts[row[3]] += 1
+            if row[6] != '.' and row[6] != '..':
+                parent_list[row[3]] = row[1]
 
 with open(file_path, "r") as f:
     reader = csv.reader(f, delimiter=',')
@@ -108,7 +111,6 @@ with open(file_path, "r") as f:
             if dir_counts[row[1]] != int(row[6]):
                 print(f"INODE {row[1]} HAS {dir_counts[row[1]]} LINKS BUT LINKCOUNT IS {row[6]}")
 
-
         if row[0] == 'INDIRECT':
             level = "INDIRECT"
             if(int(row[2]) == 2):
@@ -119,5 +121,25 @@ with open(file_path, "r") as f:
                 print(f"INVALID {level} BLOCK {row[5]} IN INODE {row[1]} AT OFFSET {row[3]}")
             if int(row[5]) > 0 and int(row[5]) < reserved:
                 print(f"RESERVED {level} BLOCK {row[5]} IN INODE {row[1]} AT OFFSET {row[3]}")
-            if reference_list[row[5]] > 1:
+            if int(reference_list[row[5]]) > 1:
                 print(f"DUPLICATE {level} BLOCK {row[5]} IN INODE {row[1]} AT OFFSET {row[3]}")
+
+        if row[0] == 'DIRENT':
+            if int(row[3]) < 0 or int(row[3]) > num_block:
+                print(f"DIRECTORY INODE {row[1]} NAME {row[6]} INVALID INODE {row[3]}")
+            if int(row[3]) >= first_non_reserved_inode and row[3] not in free_inode_list and row[3] not in inode_reference_list:
+                print(f"DIRECTORY INODE {row[1]} NAME {row[6]} UNALLOCATED INODE {row[3]}")
+        
+        if row[0] == 'DIRENT':
+            if row[6] == '.':
+                if row[1] != row[3]:
+                    print(f"DIRECTORY INODE {row[1]} NAME '.' LINK TO INODE {row[3]} SHOULD BE {row[1]}")
+            if row[6] == '..':
+                if row[3] != parent_list[row[1]]:
+                    print(f"DIRECTORY INODE {row[1]} NAME '..' LINK TO INODE {row[3]} SHOULD BE {parent_list[row[1]]}")
+
+
+
+
+
+

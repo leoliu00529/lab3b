@@ -1,0 +1,17 @@
+NAME: Yuan Shen, Zihan Liu
+EMAIL: yuanshen@g.ucla.edu, leoliu00529@gmail.com
+ID: 605142505, 105144205
+
+All the files included in the submission (lab3a-605142505.tar.gz) are:
+
+1) lab3a.c
+   This is a source file that reads a file system image whose name is specified as a command line
+   argument. It analyzes the image and produces report that includes summaries of superblock, group,
+   free block entries, free I-node entries, I-node, directory entries, and indirect block references
+   to STDOUT. 
+
+2) Makefile
+   This contains three targets:
+      (default) ... build the lab3a executable.
+      clean ... delete all files created by the Makefile.
+      dist ... build the distribution tarball.
